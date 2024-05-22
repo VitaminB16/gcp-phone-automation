@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "phone-weather-location"
+name = "gcp-phone-weather"
 version = "0.1.0"
 description = ""
 authors = ["VitaminB16 <artemiy.nosov@gmail.com>"]
