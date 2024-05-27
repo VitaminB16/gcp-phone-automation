@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "gcp-phone-weather"
+name = "gcp-phone-location"
 version = "0.1.0"
 description = ""
 authors = ["VitaminB16 <artemiy.nosov@gmail.com>"]
@@ -7,6 +7,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+python-dotenv = "^1.0.1"
+requests = "^2.32.2"
+gcp-pal = "^1.0.26"
+google-cloud-firestore = "^2.16.0"
 
 
 [build-system]
