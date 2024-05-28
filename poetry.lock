@@ -386,13 +386,13 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "gcp-pal"
-version = "1.0.27"
+version = "1.0.28"
 description = "Set of utilities for interacting with Google Cloud Platform"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "gcp_pal-1.0.27-py3-none-any.whl", hash = "sha256:cc2ea6d2a7aad6d2de179129d60ea49694bf1402e5b9b3bd7c0a8b4114c96d45"},
-    {file = "gcp_pal-1.0.27.tar.gz", hash = "sha256:b75484f12a0075bc9ff69131b81032e5a3536176ff4ea16dfbb46602ce528f3e"},
+    {file = "gcp_pal-1.0.28-py3-none-any.whl", hash = "sha256:808981c51181323ba1f84079b7874579dbb8fc2a71e5f7de58dc4db6826aede9"},
+    {file = "gcp_pal-1.0.28.tar.gz", hash = "sha256:3c34497d38a765434a85083eb541b92a866bbbfae07a6aa2f1996bf497f99b09"},
 ]
 
 [package.dependencies]
@@ -606,6 +606,23 @@ google-cloud-audit-log = ">=0.1.0,<1.0.0dev"
 google-cloud-core = ">=2.0.0,<3.0.0dev"
 grpc-google-iam-v1 = ">=0.12.4,<1.0.0dev"
 proto-plus = {version = ">=1.22.2,<2.0.0dev", markers = "python_version >= \"3.11\""}
+protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0dev"
+
+[[package]]
+name = "google-cloud-scheduler"
+version = "2.13.3"
+description = "Google Cloud Scheduler API client library"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "google-cloud-scheduler-2.13.3.tar.gz", hash = "sha256:6c88dcf60e159237a6d785655bf7810264ad70d94a873f38d9b13bd5c436ad80"},
+    {file = "google_cloud_scheduler-2.13.3-py2.py3-none-any.whl", hash = "sha256:d83197f802c4bff7076b91652df3c0d5e766e4d925b5b895a09f0b0a43aea39f"},
+]
+
+[package.dependencies]
+google-api-core = {version = ">=1.34.1,<2.0.dev0 || >=2.11.dev0,<3.0.0dev", extras = ["grpc"]}
+google-auth = ">=2.14.1,<2.24.0 || >2.24.0,<2.25.0 || >2.25.0,<3.0.0dev"
+proto-plus = ">=1.22.3,<2.0.0dev"
 protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0dev"
 
 [[package]]
@@ -1214,4 +1231,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "15be371987c082e327d424fda32a81371e81122f16e1bdbd243159e0b0be0177"
+content-hash = "c6ffea43177fda2f2b8566c5cb735591b7a07adc728b49e2aa0d1fc01b1fadf8"
