@@ -4,7 +4,7 @@ from gcp_pal import CloudScheduler, CloudFunctions
 
 load_dotenv()
 
-if __name__ == "__main__":
+def schedule_service():
     cloud_function_uri = CloudFunctions("phone-location").uri()
     # Create a Cloud Scheduler job that runs every 2 minutes
     CloudScheduler("phone-location-2-min").create(
@@ -14,3 +14,8 @@ if __name__ == "__main__":
         target=cloud_function_uri,
         service_account=os.getenv("SERVICE_ACCOUNT"),
     )
+    status = CloudScheduler("phone-location-2-min").status()
+    return status
+
+if __name__ == "__main__":
+    schedule_service()
