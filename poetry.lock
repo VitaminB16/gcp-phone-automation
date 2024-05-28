@@ -386,13 +386,13 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "gcp-pal"
-version = "1.0.26"
+version = "1.0.27"
 description = "Set of utilities for interacting with Google Cloud Platform"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "gcp_pal-1.0.26-py3-none-any.whl", hash = "sha256:21839598a61cc418dfdb8d8e711892ab34c92d2b62a3256749ee00662cdf920a"},
-    {file = "gcp_pal-1.0.26.tar.gz", hash = "sha256:35d8830f77f1ca3c961a9210c4c05908708c9536b00d6069689168667de9b426"},
+    {file = "gcp_pal-1.0.27-py3-none-any.whl", hash = "sha256:cc2ea6d2a7aad6d2de179129d60ea49694bf1402e5b9b3bd7c0a8b4114c96d45"},
+    {file = "gcp_pal-1.0.27.tar.gz", hash = "sha256:b75484f12a0075bc9ff69131b81032e5a3536176ff4ea16dfbb46602ce528f3e"},
 ]
 
 [package.dependencies]
@@ -1161,4 +1161,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "2ab2d770d5428732972b562ecbb0c0c2edd067bc813c73c446e54586246a61a7"
+content-hash = "63fe294ce76ef8a041465408a4a57355414888a94b88b33b620295b3c34e5c81"
