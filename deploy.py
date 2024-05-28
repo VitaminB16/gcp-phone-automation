@@ -1,5 +1,6 @@
 import os
 from gcp_pal import CloudFunctions
+from gcp_pal.utils import log
 
 
 def make_requirements():
@@ -12,7 +13,7 @@ def make_requirements():
 def deploy():
     CloudFunctions("phone-location").deploy(path=".", entry_point="entry_point", runtime="python312")
     status = CloudFunctions("phone-location").status()
-    print(f"Status: {status}")
+    log(f"Status: {status}")
     return status
 
 

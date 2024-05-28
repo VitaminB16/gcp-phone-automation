@@ -1,9 +1,9 @@
 from dotenv import load_dotenv
+from gcp_pal.utils import log
 
 load_dotenv()
 
 from src.location import get_current_location, store_location
-
 
 def main():
     """
@@ -12,7 +12,7 @@ def main():
     location_data = get_current_location()
     result = store_location(location_data)
     if result is True:
-        print("Location data stored successfully.")
+        log("Location data stored successfully.")
     else:
         raise Exception("Failed to store location data.")
     return

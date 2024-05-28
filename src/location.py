@@ -2,6 +2,7 @@ import os
 import requests
 
 from gcp_pal import Firestore
+from gcp_pal.utils import log
 
 
 def get_current_location():
@@ -54,7 +55,7 @@ def store_location(location_data):
             last_updated_time = default_updated_time
         updated_time = location.pop("Date")
         if updated_time <= last_updated_time:
-            print(f"No new location data for device {device_id}.")
+            log(f"No new location data for device {device_id}.")
             continue
         # Only store the location if it is newer than the last stored location
         location_path = f"device_locations/devices/{device_id}/{updated_time}"
