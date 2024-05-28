@@ -1,5 +1,6 @@
 import os
 import requests
+from datetime import datetime, timezone
 
 from gcp_pal import Firestore
 from gcp_pal.utils import log
@@ -35,6 +36,22 @@ def get_current_location():
     return output
 
 
+def convert_time_to_utc(time):
+    """
+    Convert a time string (e.g. '2024-05-28T20:09:53+02:00') to UTC time string (e.g. '2024-05-28T18:09:53+00:00').
+
+    Args:
+    - time (str): The time string to convert.
+
+    Returns:
+    - str: The time string converted to UTC time.
+    """
+    time = datetime.fromisoformat(time)
+    time = time.astimezone(timezone.utc)
+    time = datetime.isoformat(time)
+    return time
+
+
 def store_location(location_data):
     """
     Store the location data in a file.
@@ -51,10 +68,11 @@ def store_location(location_data):
             f"device_locations/last_updated_times/{device_id}/last_updated_time"
         )
         last_updated_time = Firestore(last_updated_time_path).read(allow_empty=True)
+
         if last_updated_time == {}:
             last_updated_time = default_updated_time
         updated_time = location.pop("Date")
-        if updated_time <= last_updated_time:
+        if convert_time_to_utc(updated_time) <= convert_time_to_utc(last_updated_time):
             log(f"No new location data for device {device_id}.")
             continue
         # Only store the location if it is newer than the last stored location
