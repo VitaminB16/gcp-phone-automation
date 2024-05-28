@@ -1,9 +1,12 @@
 from dotenv import load_dotenv
-from gcp_pal.utils import log
 
 load_dotenv()
 
+from gcp_pal.utils import log
+
+
 from src.location import get_current_location, store_location
+
 
 def main():
     """
