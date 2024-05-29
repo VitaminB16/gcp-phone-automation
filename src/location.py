@@ -29,7 +29,7 @@ def get_current_location():
     irrelevant_keys = ["Altitude(ft)", "Speed(km/h)"]
     output = {}
     for device_location in devices_locations:
-        device_id = device_location.pop("DeviceID")
+        device_id = device_location.get("DeviceID")
         for key in irrelevant_keys:
             device_location.pop(key)
         output[device_id] = device_location
@@ -71,7 +71,7 @@ def store_location(location_data):
 
         if last_updated_time == {}:
             last_updated_time = default_updated_time
-        updated_time = location.pop("Date")
+        updated_time = location.get("Date")
         if convert_time_to_utc(updated_time) <= convert_time_to_utc(last_updated_time):
             log(f"No new location data for device {device_id}.")
             continue
