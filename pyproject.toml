@@ -18,6 +18,7 @@ google-cloud-logging = "^3.10.0"
 gcsfs = "^2024.5.0"
 google-cloud-functions = "^1.16.3"
 google-cloud-scheduler = "^2.13.3"
+pandas = "^2.2.2"
 
 [build-system]
 requires = ["poetry-core"]
