@@ -36,7 +36,7 @@ def export_locations(device_id=None, start_date=None, end_date=None):
         output[doc.id] = doc_dict
     df = pd.DataFrame(output).T
     df = df.reset_index(drop=True)
-    df.to_csv("output/location_export.csv", index=False)
+    df.to_csv(f"output/location_export_{device_id}.csv", index=False)
     return output
 
 
