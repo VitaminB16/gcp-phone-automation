@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.12"
 python-dotenv = "^1.0.1"
 requests = "^2.32.2"
-gcp-pal = "^1.0.28"
+gcp-pal = "^1.0.29"
 google-cloud-firestore = "^2.16.0"
 google-cloud-logging = "^3.10.0"
 

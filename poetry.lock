@@ -386,13 +386,13 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "gcp-pal"
-version = "1.0.28"
+version = "1.0.29"
 description = "Set of utilities for interacting with Google Cloud Platform"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "gcp_pal-1.0.28-py3-none-any.whl", hash = "sha256:808981c51181323ba1f84079b7874579dbb8fc2a71e5f7de58dc4db6826aede9"},
-    {file = "gcp_pal-1.0.28.tar.gz", hash = "sha256:3c34497d38a765434a85083eb541b92a866bbbfae07a6aa2f1996bf497f99b09"},
+    {file = "gcp_pal-1.0.29-py3-none-any.whl", hash = "sha256:eb7999f9a228b070d9f405a0af3b1a8cf450032daf14d77cd4ceaf8f62e897a9"},
+    {file = "gcp_pal-1.0.29.tar.gz", hash = "sha256:4fe85625ef2e6230832d994af5907d348ec23f8c16d1b444349c33a2f68aaadf"},
 ]
 
 [package.dependencies]
@@ -1196,13 +1196,13 @@ files = [
 
 [[package]]
 name = "requests"
-version = "2.32.2"
+version = "2.32.3"
 description = "Python HTTP for Humans."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "requests-2.32.2-py3-none-any.whl", hash = "sha256:fc06670dd0ed212426dfeb94fc1b983d917c4f9847c863f313c9dfaaffb7c23c"},
-    {file = "requests-2.32.2.tar.gz", hash = "sha256:dd951ff5ecf3e3b3aa26b40703ba77495dab41da839ae72ef3c8e5d8e2433289"},
+    {file = "requests-2.32.3-py3-none-any.whl", hash = "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"},
+    {file = "requests-2.32.3.tar.gz", hash = "sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760"},
 ]
 
 [package.dependencies]
@@ -1392,4 +1392,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "65e756dca8907f0223dba8198148a5cb28f650ee5bf13e984a3018ac57c29d80"
+content-hash = "e1bfeaf8b97e108b0b557e2e2c32fd51573c6172501550455c0508be3dfdbdeb"
