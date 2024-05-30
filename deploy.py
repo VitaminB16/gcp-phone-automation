@@ -2,7 +2,7 @@ import os
 from gcp_pal import CloudFunctions
 from gcp_pal.utils import log
 
-from schedule import schedule_service
+from packages.gcp_phone_location.schedule import schedule_service
 
 
 def make_requirements():
