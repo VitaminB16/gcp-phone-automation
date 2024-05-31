@@ -50,7 +50,7 @@ def parse_weather_forecast(weather_forecast):
         humidity = forecast["main"]["humidity"]
         wind_speed = forecast["wind"]["speed"]
         wind_direction = forecast["wind"]["deg"]
-        rain = forecast.get("rain", 0)
+        rain = forecast.get("rain", {}).get("3h", 0)
 
         parsed_forecast[date] = {
             "weather": weather,
@@ -64,6 +64,10 @@ def parse_weather_forecast(weather_forecast):
         }
 
     parsed_forecast = pd.DataFrame(parsed_forecast).T
+    parsed_forecast = parsed_forecast.reset_index()
+    parsed_forecast = parsed_forecast.rename(columns={"index": "timestamp"})
+    parsed_forecast = parsed_forecast.reset_index(drop=True)
+    parsed_forecast["timestamp"] = pd.to_datetime(parsed_forecast["timestamp"])
 
     return parsed_forecast
 
