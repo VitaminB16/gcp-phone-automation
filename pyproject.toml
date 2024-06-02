@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "gcp-phone-location"
+name = "gcp-phone-automation"
 version = "0.1.0"
 description = ""
 authors = ["VitaminB16 <artemiy.nosov@gmail.com>"]
