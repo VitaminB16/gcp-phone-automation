@@ -114,9 +114,9 @@ def parse_weather_forecast(weather_forecast):
     parsed_forecast["timestamp"] = pd.to_datetime(parsed_forecast["timestamp"])
     # Get the granularity of the forecast
     current_time = pd.Timestamp.now()
-    # current_time = pd.Timestamp("2024-06-03 06:00:02")
+    current_time = pd.Timestamp("2024-06-03 06:00:02")
     filter_time_min = current_time - pd.Timedelta(hours=1)
-    filter_time_max = current_time + pd.Timedelta(hours=19)
+    filter_time_max = current_time + pd.Timedelta(hours=16)
     query_str = "timestamp >= @filter_time_min and timestamp <= @filter_time_max"
     parsed_forecast = parsed_forecast.query(query_str)
 
@@ -133,18 +133,16 @@ def print_weather(weather_df):
     - weather_df (pd.DataFrame): The weather forecast data.
     """
     print_strings = []
-    weather_df["timestamp"] = pd.to_datetime(weather_df["timestamp"]) - pd.Timedelta(
-        hours=9
-    )
+    weather_df["timestamp"] = pd.to_datetime(weather_df["timestamp"])
     for _, row in weather_df.iterrows():
         timestamp = row["timestamp"].strftime("%H:%M")
         weather = row["weather"]
-        temp = round(row["temp"], 0)
-        temp_feels_like = round(row["temp_feels_like"], 0)
+        temp = round(row["temp"])
+        temp_feels_like = round(row["temp_feels_like"])
         pressure = row["pressure"]
         humidity = row["humidity"]
-        wind_speed = round(row["wind_speed"], 0)
-        wind_gust = round(row["wind_gust"], 0)
+        wind_speed = round(row["wind_speed"])
+        wind_gust = round(row["wind_gust"])
         wind_direction = row["wind_direction"]
         rain = row["rain"]
         cloudiness = row["cloudiness"]
@@ -158,3 +156,24 @@ def print_weather(weather_df):
         print_strings.append(print_string)
     print_string = "\n".join(print_strings)
     return print_string
+
+
+def get_message_for_weather(weather_df, metadata):
+    """
+    Get the message for the weather forecast.
+
+    Args:
+    - weather_df (pd.DataFrame): The weather forecast data.
+
+    Returns:
+    - str: The message for the weather forecast.
+    """
+    city = metadata["name"]
+    country = metadata["country"]
+    sunrise = metadata["sunrise"]
+    sunset = metadata["sunset"]
+    message = f"Here is the weather forecast for {city}, {country}:\n"
+    message += print_weather(weather_df)
+    message += f"\nSunrise: {sunrise}"
+    message = f"\nSunset: {sunset}"
+    return message
