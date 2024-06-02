@@ -10,9 +10,18 @@ from packages.gcp_phone_weather.utils import (
 )
 
 
-if __name__ == "__main__":
+def main():
     latitude, longitude = obtain_recent_coordinates()
     weather, metadata = query_weather_forecast(latitude, longitude)
     prompt = get_llm_prompt(weather, metadata)
     response = query_openai_prompt(prompt)
     send_text_message(response, metadata)
+
+
+def entry_point(request):
+    main()
+    return {"status": 200}
+
+
+if __name__ == "__main__":
+    main()
