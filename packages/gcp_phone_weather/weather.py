@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import json
 import requests
 import pandas as pd
 from datetime import datetime
@@ -114,8 +115,8 @@ def parse_weather_forecast(weather_forecast):
     parsed_forecast = parsed_forecast.reset_index(drop=True)
     parsed_forecast["timestamp"] = pd.to_datetime(parsed_forecast["timestamp"])
     # Get the granularity of the forecast
-    # current_time = pd.Timestamp.now()
-    current_time = pd.Timestamp("2024-06-01 06:00:02")
+    current_time = pd.Timestamp.now()
+    # current_time = pd.Timestamp("2024-06-03 06:00:02")
     filter_time_min = current_time - pd.Timedelta(hours=1)
     filter_time_max = current_time + pd.Timedelta(hours=19)
     query_str = "timestamp >= @filter_time_min and timestamp <= @filter_time_max"
@@ -179,15 +180,15 @@ def print_weather(weather_df):
             f"{timestamp}: {weather} | {temp}°C (feels like {temp_feels_like}°C) | "
             f"Pressure: {pressure} hPa | Humidity: {humidity}% | "
             f"Wind: {wind_speed} km/h (gust {wind_gust} km/h) {wind_direction}° | "
-            f"Cloudiness: {cloudiness}% | % Precip: {row['prob_precip']}% | "
-            f" | Rain: {rain} mm | Snow: {row['snow']} mm"
+            f"Cloudiness: {cloudiness}% | Prob. precip: {row['prob_precip']}% | "
+            f"Rain: {rain} mm | Snow: {row['snow']} mm"
         )
         print_strings.append(print_string)
     print_string = "\n".join(print_strings)
     return print_string
 
 
-def get_llm_prompt(weather_df=None):
+def get_llm_prompt(weather_df=None, metadata=None):
     """
     Query the OpenAI GPT-3 API.
 
@@ -198,12 +199,17 @@ def get_llm_prompt(weather_df=None):
     - str: The response from the GPT-3 API.
     """
     weather_string = print_weather(weather_df)
-    prompt = f"""
-It is 6am. The following is a weather forecast for today:
+    prompt = f"""It is 6am. The following is a weather forecast for today:
 ```
 {weather_string}
 ```
-Your task is to summarise this forecast in a digestible way, by giving advice on whether it is warm/cold or whether I should take an umbrella, etc. The output will be sent as a text message at 6am and will be read first thing in the morning, so it should be very simple. Write short sentences, (e.g. "Today will be rainy, cool and cloudy. Temperature 13.1°C-15.7°C. Wind speed high, gusts 12.8 m/s."). Make it short and informative. Use the same units as in the forecast.
+Your task is to summarise this forecast in a digestible way, by giving advice on whether it is warm/cold.
+The output will be sent as a text message at 6am and will be read first thing in the morning, so it should be very simple.
+Write short sentences, (e.g. "Today will be rainy, cool and cloudy. Temperature 13.1°C-15.7°C. Wind speed high, gusts 12.8 m/s.").
+Give actionable sugestions. E.g. "Bring an umbrella.", "Wear a jacket.", "Go for a walk.", "Wear gloves.".
+Make it short and informative. Use the same units as in the forecast.
+Additional metadata:
+{json.dumps(metadata)}
 """
     return prompt
 
@@ -219,9 +225,35 @@ def query_openai_prompt(prompt, model="gpt-4-turbo"):
     return output_message
 
 
+def send_text_message(message, metadata):
+    """
+    Send a notification to the phone using Pushover API.
+
+    Args:
+    - message (str): The message to send.
+    - metadata (dict): The metadata of the location.
+    """
+    city = metadata["name"]
+    message = f"{city} Weather:\n{message}"
+    url = "https://api.pushover.net/1/messages.json"
+    data = {
+        "token": os.getenv("PUSHOVER_API_TOKEN", None),
+        "user": os.getenv("PUSHOVER_USER_KEY", None),
+        "title": "Weather Forecast",
+        "message": message,
+        "priority": 0,
+    }
+    response = requests.post(url, data=data)
+    if response.status_code == 200:
+        print("Notification sent.")
+        return
+    print("Failed to send notification.")
+    return
+
+
 if __name__ == "__main__":
     latitude, longitude = obtain_recent_coordinates()
     weather, metadata = query_weather_forecast(latitude, longitude)
-    prompt = get_llm_prompt(weather)
+    prompt = get_llm_prompt(weather, metadata)
     response = query_openai_prompt(prompt)
-    print(response)
+    send_text_message(response, metadata)
