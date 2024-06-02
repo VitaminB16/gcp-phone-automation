@@ -12,6 +12,7 @@ requests = "^2.32.2"
 gcp-pal = "^1.0.29"
 google-cloud-firestore = "^2.16.0"
 google-cloud-logging = "^3.10.0"
+selenium = "^4.21.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -19,6 +20,8 @@ gcsfs = "^2024.5.0"
 google-cloud-functions = "^1.16.3"
 google-cloud-scheduler = "^2.13.3"
 pandas = "^2.2.2"
+ipykernel = "^6.29.4"
+beautifulsoup4 = "^4.12.3"
 
 [build-system]
 requires = ["poetry-core"]

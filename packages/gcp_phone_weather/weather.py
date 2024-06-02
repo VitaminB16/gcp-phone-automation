@@ -3,11 +3,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
-import json
 import requests
 import pandas as pd
 from datetime import datetime
-from gcp_pal import Firestore
 
 
 def query_weather_forecast(latitude, longitude, parse_output=True):
@@ -127,32 +125,6 @@ def parse_weather_forecast(weather_forecast):
     return parsed_forecast, metadata
 
 
-def obtain_recent_coordinates(device_id=None):
-    """
-    Obtain the most recent coordinates of the device from Firestore.
-
-    Args:
-    - device_id (str): The device ID.
-
-    Returns:
-    - tuple: The latitude and longitude of the device.
-    """
-    if device_id is None:
-        device_id = os.environ["FOLLOWMEE_DEVICE_ID"]
-
-    firestore_time_path = (
-        f"device_locations/last_updated_times/{device_id}/last_updated_time"
-    )
-    last_updated_time = Firestore(firestore_time_path).read()
-    firestore_location_path = (
-        f"device_locations/devices/{device_id}/{last_updated_time}"
-    )
-    last_location = Firestore(firestore_location_path).read()
-    latitude = last_location["Latitude"]
-    longitude = last_location["Longitude"]
-    return latitude, longitude
-
-
 def print_weather(weather_df):
     """
     Print the weather forecast for the LLM prompt.
@@ -167,8 +139,8 @@ def print_weather(weather_df):
     for _, row in weather_df.iterrows():
         timestamp = row["timestamp"].strftime("%H:%M")
         weather = row["weather"]
-        temp = round(row["temp"], 1)
-        temp_feels_like = round(row["temp_feels_like"], 1)
+        temp = round(row["temp"], 0)
+        temp_feels_like = round(row["temp_feels_like"], 0)
         pressure = row["pressure"]
         humidity = row["humidity"]
         wind_speed = round(row["wind_speed"], 0)
@@ -186,74 +158,3 @@ def print_weather(weather_df):
         print_strings.append(print_string)
     print_string = "\n".join(print_strings)
     return print_string
-
-
-def get_llm_prompt(weather_df=None, metadata=None):
-    """
-    Query the OpenAI GPT-3 API.
-
-    Args:
-    - prompt (str): The prompt to query.
-
-    Returns:
-    - str: The response from the GPT-3 API.
-    """
-    weather_string = print_weather(weather_df)
-    prompt = f"""It is 6am. The following is a weather forecast for today:
-```
-{weather_string}
-```
-Your task is to summarise this forecast in a digestible way, by giving advice on whether it is warm/cold.
-The output will be sent as a text message at 6am and will be read first thing in the morning, so it should be very simple.
-Write short sentences, (e.g. "Today will be rainy, cool and cloudy. Temperature 13.1°C-15.7°C. Wind speed high, gusts 12.8 m/s.").
-Give actionable sugestions. E.g. "Bring an umbrella.", "Wear a jacket.", "Go for a walk.", "Wear gloves.".
-Make it short and informative. Use the same units as in the forecast.
-Additional metadata:
-{json.dumps(metadata)}
-"""
-    return prompt
-
-
-def query_openai_prompt(prompt, model="gpt-4-turbo"):
-    api_key = os.environ["OPENAI_API_KEY"]
-    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    url = "https://api.openai.com/v1/chat/completions"
-    message = {"model": model, "messages": [{"role": "user", "content": prompt}]}
-    response = requests.post(url, headers=headers, json=message)
-    output = response.json()
-    output_message = output["choices"][0]["message"]["content"]
-    return output_message
-
-
-def send_text_message(message, metadata):
-    """
-    Send a notification to the phone using Pushover API.
-
-    Args:
-    - message (str): The message to send.
-    - metadata (dict): The metadata of the location.
-    """
-    city = metadata["name"]
-    message = f"{city} Weather:\n{message}"
-    url = "https://api.pushover.net/1/messages.json"
-    data = {
-        "token": os.getenv("PUSHOVER_API_TOKEN", None),
-        "user": os.getenv("PUSHOVER_USER_KEY", None),
-        "title": "Weather Forecast",
-        "message": message,
-        "priority": 0,
-    }
-    response = requests.post(url, data=data)
-    if response.status_code == 200:
-        print("Notification sent.")
-        return
-    print("Failed to send notification.")
-    return
-
-
-if __name__ == "__main__":
-    latitude, longitude = obtain_recent_coordinates()
-    weather, metadata = query_weather_forecast(latitude, longitude)
-    prompt = get_llm_prompt(weather, metadata)
-    response = query_openai_prompt(prompt)
-    send_text_message(response, metadata)
