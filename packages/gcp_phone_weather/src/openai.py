@@ -6,7 +6,7 @@ import os
 import json
 import requests
 
-from packages.gcp_phone_weather.weather import print_weather
+from packages.gcp_phone_weather.src.weather import print_weather
 
 
 PROMPT_1 = """Your task is to summarise this forecast in a digestible way, by giving advice on whether it is warm/cold.

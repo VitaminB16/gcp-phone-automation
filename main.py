@@ -7,7 +7,10 @@ import json
 from gcp_pal.utils import log
 from flask import Flask, jsonify, request as flask_request
 
-from packages.gcp_phone_location.location import get_current_location, store_location
+from packages.gcp_phone_location.src.location import (
+    get_current_location,
+    store_location,
+)
 
 app = Flask(__name__)
 
@@ -52,6 +55,9 @@ def flask_entry_point():
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    host = os.environ.get("HOST", "0.0.0.0")
-    app.run(host=host, port=port)
+    if os.getenv("ENV", None) == "dev":
+        main(task="weather")
+    else:
+        port = int(os.environ.get("PORT", 8080))
+        host = os.environ.get("HOST", "0.0.0.0")
+        app.run(host=host, port=port)

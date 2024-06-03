@@ -5,7 +5,7 @@ load_dotenv()
 from gcp_pal.utils import log
 
 
-from packages.gcp_phone_location.location import get_current_location, store_location
+from packages.gcp_phone_location.src.location import get_current_location, store_location
 
 
 def main():

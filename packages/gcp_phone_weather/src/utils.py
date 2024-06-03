@@ -9,7 +9,7 @@ from gcp_pal import Firestore
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
-from packages.gcp_phone_weather.openai import get_llm_prompt, query_openai_prompt
+from packages.gcp_phone_weather.src.openai import get_llm_prompt, query_openai_prompt
 
 
 def obtain_recent_coordinates(device_id=None):
@@ -102,7 +102,7 @@ def compute_text_message(weather_df, metadata, use_llm=True):
         prompt = get_llm_prompt(weather_df, metadata)
         message = query_openai_prompt(prompt)
     else:
-        from packages.gcp_phone_weather.weather import get_message_for_weather
+        from packages.gcp_phone_weather.src.weather import get_message_for_weather
 
         message = get_message_for_weather(weather_df, metadata)
     return message
