@@ -19,6 +19,6 @@ def schedule_service():
         payload='{"task": "weather"}',
         service_account=service_account,
     )
-    status = CloudScheduler("phone-location").status()
+    status = CloudScheduler("phone-weather").status()
     print(f"Status: {status}")
     return status
