@@ -7,11 +7,6 @@ import json
 from gcp_pal.utils import log
 from flask import Flask, jsonify, request as flask_request
 
-from packages.gcp_phone_location.src.location import (
-    get_current_location,
-    store_location,
-)
-
 app = Flask(__name__)
 
 
