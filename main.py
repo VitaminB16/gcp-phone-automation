@@ -2,29 +2,56 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import os
+import json
 from gcp_pal.utils import log
-
+from flask import Flask, jsonify, request as flask_request
 
 from packages.gcp_phone_location.location import get_current_location, store_location
 
+app = Flask(__name__)
 
-def main():
+
+def main(task=None):
     """
     Stores the current location of all my devices.
     """
-    location_data = get_current_location()
-    result = store_location(location_data)
-    if result is True:
-        log("Location data stored successfully.")
+    if task == "location":
+        from packages.gcp_phone_location.main import main
+    elif task == "weather":
+        from packages.gcp_phone_weather.main import main
     else:
-        raise Exception("Failed to store location data.")
-    return
+        raise ValueError(f"Invalid task: {task}")
+
+    main()
 
 
 def entry_point(request):
-    main()
+    task = request.args.get("task", None)
+    main(task=task)
     return {"status": "success"}
 
 
+@app.route("/", methods=["POST", "GET"])
+def flask_entry_point():
+    if flask_request.method == "POST":
+        payload = flask_request.get_json(silent=True, force=True)
+    else:
+        payload = flask_request.args.to_dict()
+    if isinstance(payload, str):
+        payload = json.loads(payload)
+    task = payload.get("task", None)
+    if task is None:
+        log("No task provided.")
+        return {
+            "status": "failure",
+            "message": f"No task provided. Recieved: {flask_request.args}",
+        }
+    main(task=task)
+    return jsonify({"status": "success"}), 200
+
+
 if __name__ == "__main__":
-    main()
+    port = int(os.environ.get("PORT", 8080))
+    host = os.environ.get("HOST", "0.0.0.0")
+    app.run(host=host, port=port)

@@ -13,6 +13,9 @@ gcp-pal = "^1.0.29"
 google-cloud-firestore = "^2.16.0"
 google-cloud-logging = "^3.10.0"
 selenium = "^4.21.0"
+flask = "2.3.3"
+pandas = "^2.2.2"
+chromedriver-binary = "^127.0.6516.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -22,6 +25,8 @@ google-cloud-scheduler = "^2.13.3"
 pandas = "^2.2.2"
 ipykernel = "^6.29.4"
 beautifulsoup4 = "^4.12.3"
+docker = "^7.1.0"
+google-cloud-run = "^0.10.5"
 
 [build-system]
 requires = ["poetry-core"]

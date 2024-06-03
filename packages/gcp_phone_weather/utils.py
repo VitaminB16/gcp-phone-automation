@@ -53,7 +53,12 @@ def get_weather_image_icon(metadata):
     url = f"https://www.google.com/search?q=weather+in+{city}+{country}"
     headers = {"User-Agent": "Mozilla/5.0"}
     cookies = {"CONSENT": "YES+cb.20210720-07-p0.en+FX+410"}
-    driver = webdriver.Chrome()
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("window-size=1024,768")
+    chrome_options.add_argument("--no-sandbox")
+    driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     image_class = "wob_tci"
     image = driver.find_element(By.CLASS_NAME, image_class)
