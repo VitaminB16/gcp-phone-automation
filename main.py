@@ -27,7 +27,7 @@ def main(task=None):
 
 
 def entry_point(request):
-    task = request.args.get("task", None)
+    task = request.args.get("task", "location")
     main(task=task)
     return {"status": "success"}
 
