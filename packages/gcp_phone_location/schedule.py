@@ -1,8 +1,5 @@
-import os
-from dotenv import load_dotenv
 from gcp_pal import CloudScheduler, CloudFunctions
 
-load_dotenv()
 
 def schedule_service():
     cloud_function_uri = CloudFunctions("phone-location").uri()
@@ -12,10 +9,11 @@ def schedule_service():
         time_zone="UTC",
         payload={},
         target=cloud_function_uri,
-        service_account=os.getenv("SERVICE_ACCOUNT"),
+        service_account="DEFAULT",
     )
     status = CloudScheduler("phone-location-2-min").status()
     return status
+
 
 if __name__ == "__main__":
     schedule_service()

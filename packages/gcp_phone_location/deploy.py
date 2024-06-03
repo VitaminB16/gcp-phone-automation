@@ -1,10 +1,6 @@
-import os
-import glob
 from gcp_pal import CloudFunctions
 from gcp_pal.utils import log
 
-
-from packages.utils import make_requirements
 from packages.gcp_phone_location.schedule import schedule_service
 
 
