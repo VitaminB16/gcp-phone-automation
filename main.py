@@ -13,6 +13,9 @@ app = Flask(__name__)
 def main(task=None):
     """
     Stores the current location of all my devices.
+
+    Args:
+    - task (str): The task to run. Can be either "location" or "weather".
     """
     if task == "location":
         from packages.gcp_phone_location.main import main
@@ -23,15 +26,32 @@ def main(task=None):
 
     main()
 
+    return {"status": "success"}
+
 
 def entry_point(request):
+    """
+    Entry point for the Cloud Function.
+
+    Args:
+    - request (flask.Request): The flask request object, which (potentially) contains the payload.
+
+    Returns:
+    - dict: A dictionary containing the response.
+    """
     task = request.args.get("task", "location")
-    main(task=task)
-    return {"status": "success"}
+    response = main(task=task)
+    return response
 
 
 @app.route("/", methods=["POST", "GET"])
 def flask_entry_point():
+    """
+    Entry point for the Flask app. This is used by the Cloud Run services. The payload is passed in the request.
+
+    Returns:
+    - dict: A dictionary containing the response.
+    """
     if flask_request.method == "POST":
         payload = flask_request.get_json(silent=True, force=True)
     else:

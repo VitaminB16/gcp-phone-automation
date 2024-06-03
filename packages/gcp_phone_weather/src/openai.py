@@ -47,6 +47,16 @@ Additional metadata:
 
 
 def query_openai_prompt(prompt, model="gpt-4-turbo"):
+    """
+    Query the OpenAI API with the given prompt.
+
+    Args:
+    - prompt (str): The prompt to query.
+    - model (str): The model to use. Defaults to "gpt-4-turbo".
+
+    Returns:
+    - str: The response from the LLM model.
+    """
     api_key = os.environ["OPENAI_API_KEY"]
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     url = "https://api.openai.com/v1/chat/completions"

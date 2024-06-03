@@ -92,12 +92,24 @@ def send_text_message(message, metadata):
     response = requests.post(url, data=data)
     if response.status_code == 200:
         print("Notification sent.")
-        return
+        return {"status": "success"}
     print("Failed to send notification.")
-    return
+    return {"status": "failure"}
 
 
 def compute_text_message(weather_df, metadata, use_llm=True):
+    """
+    Compute the text message to send based on the weather forecast.
+    Can either use the LLM model for text generation or a simple rule-based approach.
+
+    Args:
+    - weather_df (pd.DataFrame): The weather forecast data.
+    - metadata (dict): The metadata of the location.
+    - use_llm (bool): Whether to use the LLM model.
+
+    Returns:
+    - str: The text message to send.
+    """
     if use_llm:
         prompt = get_llm_prompt(weather_df, metadata)
         message = query_openai_prompt(prompt)

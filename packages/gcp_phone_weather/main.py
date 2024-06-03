@@ -13,15 +13,17 @@ from packages.gcp_phone_weather.src.utils import (
 
 
 def main():
+    """
+    Query the weather forecast for the most recent coordinates of the device and send a text message.
+
+    Returns:
+    - dict: A dictionary containing the response.
+    """
     latitude, longitude = obtain_recent_coordinates()
     weather, metadata = query_weather_forecast(latitude, longitude)
     message = compute_text_message(weather, metadata, use_llm=True)
-    send_text_message(message, metadata)
-
-
-def entry_point(request):
-    main()
-    return {"status": 200}
+    status = send_text_message(message, metadata)
+    return status
 
 
 if __name__ == "__main__":
