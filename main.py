@@ -71,7 +71,7 @@ def flask_entry_point():
 
 if __name__ == "__main__":
     if os.getenv("ENV", None) == "dev":
-        main(task="weather")
+        main(task="location")
     else:
         port = int(os.environ.get("PORT", 8080))
         host = os.environ.get("HOST", "0.0.0.0")

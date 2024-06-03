@@ -52,6 +52,37 @@ def convert_time_to_utc(time):
     return time
 
 
+def parse_time_zone(time):
+    """
+    Parse the time zone from a time string.
+
+    Args:
+    - time (str): The time string to parse.
+
+    Returns:
+    - str: The time zone of the time string.
+    """
+    if "+" in time:
+        time_zone = time.split("+")[1]
+        sign = "+"
+    elif "-" in time:
+        time_zone = time.split("-")[1]
+        sign = "-"
+    # Remove leading zeros
+    if time_zone == "00:00":
+        return "UTC"
+    if time_zone[0] == "0":
+        time_zone = time_zone[1:]
+    if time_zone.endswith(":00"):
+        time_zone = time_zone.replace(":00", "")
+    else:
+        # There is little we can do for non-hour time zones (e.g. Kabul UTC+4:30)
+        time_zone = time_zone.split(":")[0]
+    # Archaic tz database format because Google Cloud Scheduler does not support UTC...
+    time_zone = f"Etc/GMT{sign}{time_zone}"
+    return time_zone
+
+
 def store_location(location_data):
     """
     Store the location data in a file.
@@ -75,6 +106,19 @@ def store_location(location_data):
         if convert_time_to_utc(updated_time) <= convert_time_to_utc(last_updated_time):
             log(f"No new location data for device {device_id}.")
             continue
+
+        last_updated_time_zone = parse_time_zone(last_updated_time)
+        current_time_zone = parse_time_zone(updated_time)
+        if current_time_zone != last_updated_time_zone:
+            # Time zone changed! We have to reschedule the weather service.
+            log(f"Time zone changed for device {device_id}!")
+            log("Rescheduling the weather service...")
+            from packages.gcp_phone_weather.schedule import schedule_service
+            try:
+                schedule_service(time_zone=current_time_zone)
+            except Exception as e:
+                log(f"Failed to reschedule the weather service: {e}")
+
         # Only store the location if it is newer than the last stored location
         location_path = f"device_locations/devices/{device_id}/{updated_time}"
         Firestore(location_path).write(location)
