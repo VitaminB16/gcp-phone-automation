@@ -79,6 +79,7 @@ def parse_time_zone(time):
         # There is little we can do for non-hour time zones (e.g. Kabul UTC+4:30)
         time_zone = time_zone.split(":")[0]
     # Archaic tz database format because Google Cloud Scheduler does not support UTC...
+    sign = "+" if sign == "-" else "-"  # Etc/GMT+N == UTC-N (inverted sign!!!)
     time_zone = f"Etc/GMT{sign}{time_zone}"
     return time_zone
 
@@ -114,6 +115,7 @@ def store_location(location_data):
             log(f"Time zone changed for device {device_id}!")
             log("Rescheduling the weather service...")
             from packages.gcp_phone_weather.schedule import schedule_service
+
             try:
                 schedule_service(time_zone=current_time_zone)
             except Exception as e:
