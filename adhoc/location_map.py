@@ -7,10 +7,24 @@ import pandas as pd
 import plotly.express as px
 
 
+def get_screen_dimensions():
+    try:
+        from screeninfo import get_monitors
+
+        monitor = get_monitors()[0]
+        return monitor.height, monitor.width
+    except ImportError:
+        return 1080, 1920
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1080, 1920
+
+
 def plot_location(device_id: str = None):
     device_id = device_id or os.environ["FOLLOWMEE_DEVICE_ID"]
     df = pd.read_csv(f"output/location_export_{device_id}.csv")
     df = df.assign(size=1)
+    height, width = get_screen_dimensions()
     fig = px.scatter_mapbox(
         df,
         lat="Latitude",
@@ -19,8 +33,8 @@ def plot_location(device_id: str = None):
         zoom=8,
         size="size",
         size_max=8,
-        height=1080,
-        width=1920,
+        height=height,
+        width=width,
     )
     # Set the alpha value of the markers to 1
     fig.update_traces(marker_opacity=1)
