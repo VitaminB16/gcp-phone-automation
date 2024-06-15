@@ -3,7 +3,7 @@ import pandas as pd
 from gcp_pal import Firestore
 
 
-def export_locations(device_id=None, start_date=None, end_date=None):
+def export_locations(device_id=None, start_date=None, end_date=None, append=True):
     """
     Export the location data from Firestore between the start and end dates.
 
@@ -24,6 +24,14 @@ def export_locations(device_id=None, start_date=None, end_date=None):
     if end_date is None:
         end_date = "2200-05-28T18:09:53+00:00"
 
+    if append:
+        # Append the location data to the existing CSV file
+        existing_df = pd.read_csv(f"output/location_export_{device_id}.csv")
+        existing_dates = existing_df["Date"].tolist()
+        start_date = max(existing_dates)
+    else:
+        existing_df = pd.DataFrame()
+
     # Filter the documents between the start and end dates by the ID
     doc_ref = (
         col_ref.where("Date", ">=", start_date).where("Date", "<=", end_date).get()
@@ -37,6 +45,9 @@ def export_locations(device_id=None, start_date=None, end_date=None):
     df = pd.DataFrame(output).T
     df = df.reset_index(drop=True)
     folder_name = "output"
+    print(f"Appended {len(df)} new rows (from {start_date} to {df['Date'].max()})")
+    df = pd.concat([existing_df, df], axis=0, ignore_index=True)
+    df = df.drop_duplicates(subset=["Date", "Latitude", "Longitude"], keep="last")
     os.makedirs(folder_name, exist_ok=True)
     df.to_csv(f"output/location_export_{device_id}.csv", index=False)
     return output
