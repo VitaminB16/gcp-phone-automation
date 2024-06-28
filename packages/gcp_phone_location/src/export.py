@@ -26,9 +26,12 @@ def export_locations(device_id=None, start_date=None, end_date=None, append=True
 
     if append:
         # Append the location data to the existing CSV file
-        existing_df = pd.read_csv(f"output/location_export_{device_id}.csv")
-        existing_dates = existing_df["Date"].tolist()
-        start_date = max(existing_dates)
+        try:
+            existing_df = pd.read_csv(f"output/location_export_{device_id}.csv")
+            existing_dates = existing_df["Date"].tolist()
+            start_date = max(existing_dates)
+        except FileNotFoundError:
+            existing_df = pd.DataFrame()
     else:
         existing_df = pd.DataFrame()
 
