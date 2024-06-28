@@ -12,7 +12,7 @@ def deploy_cloud_function():
     - str: The status of the cloud function.
     """
     CloudFunctions("phone-location").deploy(
-        path=".", entry_point="entry_point", runtime="python312"
+        path=".", entry_point="entry_point", runtime="python312", environment=1
     )
     status = CloudFunctions("phone-location").status()
     log(f"Status: {status}")
