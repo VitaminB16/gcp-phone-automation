@@ -5,6 +5,7 @@ load_dotenv()
 import os
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 
 def get_screen_dimensions():
@@ -20,12 +21,12 @@ def get_screen_dimensions():
         return 1080, 1920
 
 
-def plot_location(device_id: str = None):
+def plot_location(device_id: str = None, add_lines: bool = False):
     device_id = device_id or os.environ["FOLLOWMEE_DEVICE_ID"]
     df = pd.read_csv(f"output/location_export_{device_id}.csv")
     df = df.assign(size=1)
     height, width = get_screen_dimensions()
-    fig = px.scatter_mapbox(
+    fig_point = px.scatter_mapbox(
         df,
         lat="Latitude",
         lon="Longitude",
@@ -36,7 +37,23 @@ def plot_location(device_id: str = None):
         height=height,
         width=width,
     )
-    # Set the alpha value of the markers to 1
+    if add_lines:
+        fig_line = px.line_mapbox(
+            df,
+            lat="Latitude",
+            lon="Longitude",
+            hover_name="Date",
+            zoom=8,
+            height=height,
+            width=width,
+        )
+        # Remove connection lines if the points are too far apart
+        point_traces = [trace for trace in fig_point.data]
+
+        fig = go.Figure(fig_point.data + fig_line.data)
+        fig.update_traces(line=dict(color="rgba(50,50,50,1)"))
+    else:
+        fig = fig_point
     fig.update_traces(marker_opacity=1)
     fig.update_layout(mapbox_style="open-street-map")
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
