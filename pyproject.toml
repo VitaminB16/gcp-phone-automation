@@ -16,6 +16,9 @@ selenium = "^4.21.0"
 flask = "2.3.3"
 pandas = "^2.2.2"
 chromedriver-binary = "^127.0.6516.0.0"
+google-cloud-run = "^0.10.8"
+google-cloud-functions = "^1.17.0"
+google-cloud-scheduler = "^2.13.5"
 
 
 [tool.poetry.group.dev.dependencies]
