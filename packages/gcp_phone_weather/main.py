@@ -2,8 +2,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from flask import Flask, jsonify, request as flask_request
-
 from packages.gcp_phone_weather.src.weather import query_weather_forecast
 from packages.gcp_phone_weather.src.utils import (
     compute_text_message,
