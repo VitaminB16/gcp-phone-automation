@@ -60,11 +60,12 @@ def get_weather_image_icon(metadata):
     chrome_options.add_argument("--no-sandbox")
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
-    image_class = "wob_tci"
+    image_class = "wob_df.wob_ds"
     image = driver.find_element(By.CLASS_NAME, image_class)
-    image_url = image.get_attribute("src")
+    inner_html = image.get_attribute("innerHTML")
+    image_data = inner_html.split("base64,")[1].split('"')[0]
+
     driver.quit()
-    image_data = requests.get(image_url, headers=headers, cookies=cookies).content
     return image_data
 
 
@@ -78,12 +79,12 @@ def send_text_message(message, metadata):
     """
     city = metadata["name"]
     message = f"{city} Weather:\n{message}"
-    attachment_image = get_weather_image_icon(metadata)
-    base64_image = base64.b64encode(attachment_image).decode("utf-8")
+    base64_image = get_weather_image_icon(metadata)
+    # base64_image = base64.b64encode(base64_image).decode("utf-8")
     url = "https://api.pushover.net/1/messages.json"
     data = {
-        "token": os.getenv("PUSHOVER_WEATHER_API_TOKEN", None),
-        "user": os.getenv("PUSHOVER_USER_KEY", None),
+        "token": os.environ["PUSHOVER_WEATHER_API_TOKEN"],
+        "user": os.environ["PUSHOVER_USER_KEY"],
         "title": "Weather Forecast",
         "message": message,
         "priority": 0,
