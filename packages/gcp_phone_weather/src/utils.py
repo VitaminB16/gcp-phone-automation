@@ -8,6 +8,7 @@ import requests
 from gcp_pal import Firestore
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 from packages.gcp_phone_weather.src.openai import get_llm_prompt, query_openai_prompt
 
@@ -54,6 +55,7 @@ def get_weather_image_icon(metadata):
     headers = {"User-Agent": "Mozilla/5.0"}
     cookies = {"CONSENT": "YES+cb.20210720-07-p0.en+FX+410"}
     chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--user-agent=Mozilla/5.0")
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("window-size=1024,768")
@@ -79,7 +81,11 @@ def send_text_message(message, metadata):
     """
     city = metadata["name"]
     message = f"{city} Weather:\n{message}"
-    base64_image = get_weather_image_icon(metadata)
+    try:
+        base64_image = get_weather_image_icon(metadata)
+    except Exception as e:
+        # print(f"Failed to get weather image icon. Passing")
+        base64_image = None
     # base64_image = base64.b64encode(base64_image).decode("utf-8")
     url = "https://api.pushover.net/1/messages.json"
     data = {
@@ -114,6 +120,30 @@ def compute_text_message(weather_df, metadata, use_llm=True):
     if use_llm:
         prompt = get_llm_prompt(weather_df, metadata)
         message = query_openai_prompt(prompt)
+        temps = weather_df.temp.apply(lambda x: round(x, 0)).astype(int)
+        conds = weather_df.weather
+        # Abbreviate the weather conditions to only keep first 2 letters of every word
+        cond_dict = {
+            "clear sky": "☀️",
+            "few clouds": "🌤️",
+            "scattered clouds": "🌥️",
+            "broken clouds": "☁️",
+            "shower rain": "🌧️🌧️",
+            "rain": "🌧️",
+            "thunderstorm": "⛈️",
+            "snow": "❄️",
+            "mist": "🌫️",
+        }
+        conds = conds.apply(lambda x: cond_dict.get(x, x))
+        timestamps = weather_df.timestamp.dt.strftime("%I%p").str.lower()
+        timestamps = timestamps.str.replace("^0", "", regex=True)
+        prefixes = [
+            f"{time}: {temp}°C {cond}"
+            for time, temp, cond in zip(timestamps, temps, conds)
+        ]
+        prefix = "\n".join(prefixes)
+        message = f"{prefix}\n{message}"
+
     else:
         from packages.gcp_phone_weather.src.weather import get_message_for_weather
 

@@ -114,7 +114,6 @@ def parse_weather_forecast(weather_forecast):
     parsed_forecast["timestamp"] = pd.to_datetime(parsed_forecast["timestamp"])
     # Get the granularity of the forecast
     current_time = pd.Timestamp.now()
-    current_time = pd.Timestamp("2024-06-03 06:00:02")
     filter_time_min = current_time - pd.Timedelta(hours=1)
     filter_time_max = current_time + pd.Timedelta(hours=16)
     query_str = "timestamp >= @filter_time_min and timestamp <= @filter_time_max"
