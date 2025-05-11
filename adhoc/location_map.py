@@ -13,19 +13,13 @@ from dash import dcc, html, Input, Output, State, callback_context
 
 
 # --- Helper Functions ---
-def get_screen_dimensions():
-    try:
-        from screeninfo import get_monitors
-
-        monitor = get_monitors()[0]
-        # For web app, let's use a more constrained default if screeninfo fails
-        # The figure height/width will be relative to the dcc.Graph component
-        return monitor.height * 0.8, monitor.width * 0.9  # Example scaling
-    except ImportError:
-        return 700, 1000  # Adjusted for typical web view
-    except Exception as e:
-        print(f"Error getting screen dimensions: {e}")
-        return 700, 1000
+# Updated function to provide a fixed height for the figure. Width will be responsive.
+def get_figure_height():
+    """
+    Returns a suitable fixed height for the Plotly figure.
+    Width should be handled responsively by Dash and CSS.
+    """
+    return 600  # pixels
 
 
 def format_datetime_for_display(dt_obj):
@@ -38,18 +32,26 @@ def format_datetime_for_display(dt_obj):
 
 
 def create_location_figure(df_filtered: pd.DataFrame, add_lines: bool = True):
-    fig_height, fig_width = get_screen_dimensions()
+    fig_height = get_figure_height()
 
-    if df_filtered.empty:
+    df_plot = df_filtered.copy()
+
+    if "Latitude" in df_plot.columns and "Longitude" in df_plot.columns:
+        df_plot.dropna(subset=["Latitude", "Longitude"], inplace=True)
+    else:
+        df_plot = pd.DataFrame(
+            columns=df_plot.columns if not df_plot.empty else ["Latitude", "Longitude"]
+        )
+
+    if df_plot.empty:
         fig = go.Figure()
         fig.update_layout(
             height=fig_height,
-            width=fig_width,  # Use consistent dimensions
             xaxis={"visible": False},
             yaxis={"visible": False},
             annotations=[
                 {
-                    "text": "No data to display for the selected period.",
+                    "text": "No valid location data to display for the selected period.",
                     "xref": "paper",
                     "yref": "paper",
                     "showarrow": False,
@@ -58,9 +60,6 @@ def create_location_figure(df_filtered: pd.DataFrame, add_lines: bool = True):
             ],
         )
         return fig
-
-    # Avoid SettingWithCopyWarning by working on a copy for modifications
-    df_plot = df_filtered.copy()
 
     if "DisplayDate" not in df_plot.columns and "datetime_obj" in df_plot.columns:
         df_plot.loc[:, "DisplayDate"] = df_plot["datetime_obj"].apply(
@@ -76,33 +75,70 @@ def create_location_figure(df_filtered: pd.DataFrame, add_lines: bool = True):
         lat="Latitude",
         lon="Longitude",
         hover_name="DisplayDate",
-        zoom=10,  # Adjusted zoom, can be dynamic later
         size="size",
         size_max=8,
         height=fig_height,
-        width=fig_width,
+        mapbox_style="open-street-map",
     )
 
     if add_lines:
-        # Sort by datetime_obj to ensure lines are drawn in correct order
         df_plot_sorted_for_lines = df_plot.sort_values(by="datetime_obj")
         fig_line = px.line_mapbox(
             df_plot_sorted_for_lines,
             lat="Latitude",
             lon="Longitude",
             hover_name="DisplayDate",
-            zoom=10,
             height=fig_height,
-            width=fig_width,
+            mapbox_style="open-street-map",
         )
         fig = go.Figure(data=fig_point.data + fig_line.data)
+        fig.layout.mapbox = fig_point.layout.mapbox
         fig.update_traces(line=dict(color="rgba(50,50,50,1)"))
     else:
         fig = fig_point
 
     fig.update_traces(marker_opacity=1)
-    fig.update_layout(mapbox_style="open-street-map")
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+
+    if (
+        len(df_plot["Latitude"].unique()) == 1
+        and len(df_plot["Longitude"].unique()) == 1
+    ):
+        center_lat = df_plot["Latitude"].iloc[0]
+        center_lon = df_plot["Longitude"].iloc[0]
+        fig.update_layout(
+            mapbox_center={"lat": center_lat, "lon": center_lon},
+            mapbox_zoom=14,  # Keep zoom 14 for truly single points
+        )
+    else:
+        min_lon = df_plot["Longitude"].min()
+        max_lon = df_plot["Longitude"].max()
+        min_lat = df_plot["Latitude"].min()
+        max_lat = df_plot["Latitude"].max()
+
+        lon_range = max_lon - min_lon
+        lat_range = max_lat - min_lat
+
+        # Adjusted padding for a tighter fit
+        padding_factor = 0  # Reduced from 0.10
+        min_padding_degrees = 0  # Reduced from 0.005 (approx 110m)
+
+        pad_lon = max(lon_range * padding_factor, min_padding_degrees)
+        pad_lat = max(lat_range * padding_factor, min_padding_degrees)
+
+        map_bounds = {
+            "west": min_lon - pad_lon,
+            "east": max_lon + pad_lon,
+            "south": min_lat - pad_lat,
+            "north": max_lat + pad_lat,
+        }
+        fig.update_layout(mapbox_bounds=map_bounds)
+
+    fig.update_layout(
+        # mapbox_style="open-street-map", # Style is already set by px calls and copied
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        height=fig_height,
+    )
+
     fig.update_traces(
         hovertemplate=(
             "<b>Date:</b> %{hovertext}<br>"
@@ -121,13 +157,11 @@ app.title = "Location Tracker"
 DEFAULT_DEVICE_ID = os.environ.get("FOLLOWMEE_DEVICE_ID", "YOUR_DEFAULT_DEVICE_ID_HERE")
 CSV_FILE_PATH = f"output/location_export_{DEFAULT_DEVICE_ID}.csv"
 
-initial_today_str = date.today().isoformat()  # YYYY-MM-DD format
+initial_today_str = date.today().isoformat()
 
 app.layout = html.Div(
     [
-        dcc.Store(
-            id="current-target-date-store", data=initial_today_str
-        ),  # Stores YYYY-MM-DD string
+        dcc.Store(id="current-target-date-store", data=initial_today_str),
         html.H1("Device Location History"),
         html.Div(
             [
@@ -151,7 +185,6 @@ app.layout = html.Div(
         html.Div(
             id="date-controls-wrapper",
             children=[
-                # Controls for Single Day View
                 html.Div(
                     id="single-day-controls-div",
                     children=[
@@ -165,9 +198,8 @@ app.layout = html.Div(
                             id="single-date-picker",
                             date=initial_today_str,
                             display_format="YYYY-MM-DD",
-                            min_date_allowed=date(2000, 1, 1),  # Sensible min
-                            max_date_allowed=date.today()
-                            + timedelta(days=365),  # Sensible max
+                            min_date_allowed=date(2000, 1, 1),
+                            max_date_allowed=date.today() + timedelta(days=365),
                             style={
                                 "margin-right": "5px",
                                 "width": "150px",
@@ -182,7 +214,6 @@ app.layout = html.Div(
                         "align-items": "center",
                     },
                 ),
-                # Controls for Custom Range View
                 html.Div(
                     id="custom-range-controls-div",
                     children=[
@@ -197,7 +228,7 @@ app.layout = html.Div(
                         )
                     ],
                     style={"padding": "10px 0", "display": "none"},
-                ),  # Initially hidden
+                ),
             ],
         ),
         dcc.Loading(
@@ -209,7 +240,6 @@ app.layout = html.Div(
 )
 
 
-# Callback to update visibility of control groups
 @app.callback(
     [
         Output("single-day-controls-div", "style"),
@@ -222,28 +252,27 @@ def toggle_control_visibility(selected_mode):
     custom_range_style = {
         "padding": "10px 0",
         "display": "block",
-    }  # Or 'flex' if needed
+    }
 
     if selected_mode == "single_day":
         return single_day_style, {**custom_range_style, "display": "none"}
     elif selected_mode == "custom_range":
         return {**single_day_style, "display": "none"}, custom_range_style
-    else:  # 'all_history'
+    else:
         return {**single_day_style, "display": "none"}, {
             **custom_range_style,
             "display": "none",
         }
 
 
-# Callback to update the current target date (dcc.Store) and sync DatePickerSingle
 @app.callback(
     [Output("current-target-date-store", "data"), Output("single-date-picker", "date")],
     [
         Input("prev-day-button", "n_clicks"),
         Input("next-day-button", "n_clicks"),
         Input("single-date-picker", "date"),
-    ],  # Input from DatePickerSingle
-    [State("current-target-date-store", "data")],  # Current date from store
+    ],
+    [State("current-target-date-store", "data")],
     prevent_initial_call=True,
 )
 def update_target_date_store(
@@ -251,28 +280,24 @@ def update_target_date_store(
 ):
     triggered_id = callback_context.triggered[0]["prop_id"].split(".")[0]
 
-    # Use current_stored_date_str as the source of truth if buttons are clicked
-    # If DatePickerSingle is changed, picked_date_str is the new truth
-
     if triggered_id == "single-date-picker":
         if picked_date_str:
             new_date_obj = datetime.strptime(picked_date_str, "%Y-%m-%d").date()
-        else:  # DatePicker cleared, revert to stored or handle as error/default
+        else:
             new_date_obj = datetime.strptime(current_stored_date_str, "%Y-%m-%d").date()
-    else:  # A button was clicked
+    else:
         current_date_obj = datetime.strptime(current_stored_date_str, "%Y-%m-%d").date()
         if triggered_id == "prev-day-button":
             new_date_obj = current_date_obj - timedelta(days=1)
         elif triggered_id == "next-day-button":
             new_date_obj = current_date_obj + timedelta(days=1)
-        else:  # Should not happen
+        else:
             new_date_obj = current_date_obj
 
     new_date_iso_str = new_date_obj.isoformat()
-    return new_date_iso_str, new_date_iso_str  # Update store and DatePickerSingle
+    return new_date_iso_str, new_date_iso_str
 
 
-# Main callback to update the map and data info
 @app.callback(
     [Output("location-map-graph", "figure"), Output("data-info", "children")],
     [
@@ -289,10 +314,9 @@ def update_map(
         df_full = pd.read_csv(CSV_FILE_PATH)
     except FileNotFoundError:
         error_fig = go.Figure()
-        fig_height, fig_width = get_screen_dimensions()
+        fig_height = get_figure_height()  # Use new function for height
         error_fig.update_layout(
-            height=fig_height,
-            width=fig_width,
+            height=fig_height,  # Set height, remove width
             xaxis={"visible": False},
             yaxis={"visible": False},
             annotations=[
@@ -315,15 +339,10 @@ def update_map(
             "No data in CSV file.",
         )
 
-    # Convert 'Date' column to datetime objects.
-    # Original 'Date' is ISO format e.g., "2024-07-02T09:08:10+01:00"
-    # pd.to_datetime handles this well, creating timezone-aware objects if offset is present.
     df_full["datetime_obj"] = pd.to_datetime(df_full["Date"], errors="coerce")
-    df_full.dropna(
-        subset=["datetime_obj"], inplace=True
-    )  # Remove rows where date conversion failed
+    df_full.dropna(subset=["datetime_obj"], inplace=True)
 
-    if df_full.empty:  # Check after attempting conversion and dropping NaT
+    if df_full.empty:
         return (
             create_location_figure(
                 pd.DataFrame(columns=["Latitude", "Longitude", "datetime_obj"])
@@ -331,14 +350,9 @@ def update_map(
             "No valid date entries found in CSV.",
         )
 
-    # Create a 'date_only' column for date-based filtering.
-    # .dt.date gives the date part based on the datetime_obj's local time (if timezone-aware).
-    df_full["date_only"] = df_full["datetime_obj"]
-    # Convert timestamp to date only
-    df_full["date_only"] = df_full["date_only"].apply(
+    df_full["date_only"] = df_full["datetime_obj"].apply(
         lambda x: x.date() if isinstance(x, datetime) else pd.NaT
     )
-
     df_filtered = pd.DataFrame(columns=df_full.columns)
     time_range_info = "No data selected."
 
@@ -352,7 +366,7 @@ def update_map(
         )
 
     elif filter_mode == "all_history":
-        df_filtered = df_full.copy()  # Use all data
+        df_filtered = df_full.copy()
         if not df_filtered.empty:
             min_date_disp = (
                 df_filtered["datetime_obj"].min().strftime("%Y-%m-%d %H:%M:%S")
@@ -380,18 +394,21 @@ def update_map(
 
         df_filtered = df_full[
             (df_full["date_only"] >= custom_start_date_obj)
-            & (df_full["date_only"] <= custom_end_date_obj)  # Inclusive range
+            & (df_full["date_only"] <= custom_end_date_obj)
         ]
         time_range_info = (
             f"Showing data from {custom_start_date_obj.strftime('%Y-%m-%d')} "
             f"to {custom_end_date_obj.strftime('%Y-%m-%d')}."
         )
 
-    # The 'DisplayDate' column for hover tooltips is now created inside create_location_figure
-    # if it doesn't exist, operating on the df_filtered.
-
     fig = create_location_figure(df_filtered, add_lines=True)
-    num_points = len(df_filtered)
+
+    num_points = (
+        len(df_filtered.dropna(subset=["Latitude", "Longitude"]))
+        if "Latitude" in df_filtered.columns and "Longitude" in df_filtered.columns
+        else 0
+    )
+
     info_text = f"Displaying {num_points} location points. {time_range_info}"
 
     return fig, info_text
